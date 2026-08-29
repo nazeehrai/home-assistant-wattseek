@@ -30,7 +30,7 @@ class WattSeekSwitch(WattSeekCommandEntity, SwitchEntity):
         options = command.get("cmdValueList") or []
         self._on_value = next((str(x["value"]) for x in options if str(x.get("text")) in {"ON", "Enable"}), "1")
         self._off_value = next((str(x["value"]) for x in options if str(x.get("text")) in {"OFF", "Disable"}), "0")
-        if self._attr_name in DANGEROUS_COMMAND_NAMES:
+        if command.get("cmdName") in DANGEROUS_COMMAND_NAMES:
             self._attr_entity_registry_enabled_default = False
 
     @property

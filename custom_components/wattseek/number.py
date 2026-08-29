@@ -72,13 +72,13 @@ class WattSeekNumber(WattSeekCommandEntity, NumberEntity):
 
     @property
     def native_min_value(self):
-        values = (self.coordinator.data or {}).get("command_values", {})
+        values = self.coordinator.effective_command_values()
         r = _applicable_range(self.command, values)
         return float(r[0]) if r else 0.0
 
     @property
     def native_max_value(self):
-        values = (self.coordinator.data or {}).get("command_values", {})
+        values = self.coordinator.effective_command_values()
         r = _applicable_range(self.command, values)
         return float(r[1]) if r else 100000.0
 
@@ -86,17 +86,20 @@ class WattSeekNumber(WattSeekCommandEntity, NumberEntity):
     def native_step(self):
         accuracy = self.command.get("accuracy")
         try:
-            a = float(accuracy)
-            if a > 0:
-                return a
+            decimal_places = int(accuracy)
+            if decimal_places >= 0:
+                return 10 ** (-decimal_places)
         except (TypeError, ValueError):
             pass
         return 1.0
 
     async def async_set_native_value(self, value: float) -> None:
-        accuracy = self.native_step
-        if accuracy < 1:
-            text = f"{value:.1f}"
+        try:
+            decimal_places = max(0, int(self.command.get("accuracy") or 0))
+        except (TypeError, ValueError):
+            decimal_places = 0
+        if decimal_places:
+            text = f"{value:.{decimal_places}f}"
         else:
             text = str(int(value) if float(value).is_integer() else value)
         await self.async_write(text)

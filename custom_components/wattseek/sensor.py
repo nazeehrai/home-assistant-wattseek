@@ -59,13 +59,29 @@ class WattSeekFlowSensor(_BaseSensor):
     def native_value(self):
         value = (self.coordinator.data or {}).get("flow", {}).get(self.source_key)
 
-        # WattSeek reports battery flow with the opposite sign expected by
-        # Home Assistant energy-flow cards: positive should mean charging.
+        # Normalize battery power for Home Assistant energy-flow consumers:
+        # negative means charging, positive means discharging.
+        # WattSeek reports power as a magnitude; Battery current provides
+        # the direction.
         if self.source_key == "batteryPower" and value is not None:
             try:
-                return -float(value)
+                magnitude = abs(float(value))
             except (TypeError, ValueError):
                 return value
+
+            current = (self.coordinator.data or {}).get(
+                "detail_flat", {}
+            ).get("Battery current")
+            try:
+                current = float(current)
+            except (TypeError, ValueError):
+                return None
+
+            if current < -0.2:
+                return -magnitude
+            if current > 0.2:
+                return magnitude
+            return 0.0
 
         return value
 

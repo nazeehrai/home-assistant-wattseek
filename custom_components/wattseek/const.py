@@ -1,9 +1,13 @@
 DOMAIN = "wattseek"
-PLATFORMS = ["sensor", "binary_sensor", "select", "number", "switch"]
+PLATFORMS = ["sensor", "binary_sensor", "button", "select", "number", "switch"]
 
 CONF_USERNAME = "username"
 CONF_PASSWORD = "password"
 CONF_UPDATE_INTERVAL = "update_interval"
+CONF_PLANT_ID = "plant_id"
+CONF_PLANT_NAME = "plant_name"
+CONF_DEVICE_ID = "device_id"
+CONF_DEVICE_NAME = "device_name"
 
 DEFAULT_UPDATE_INTERVAL = 30
 MIN_UPDATE_INTERVAL = 10

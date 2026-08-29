@@ -9,13 +9,30 @@
           "username": "Username / email",
           "password": "Password"
         }
+      },
+      "plant": {
+        "title": "Select a WattSeek plant",
+        "description": "Choose the plant containing the inverter to add.",
+        "data": {
+          "plant_id": "Plant"
+        }
+      },
+      "inverter": {
+        "title": "Select a WattSeek inverter",
+        "description": "Dataloggers are excluded. Each inverter can be added once.",
+        "data": {
+          "device_id": "Inverter"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Unable to connect or authenticate to WattSeek"
+      "cannot_connect": "Unable to connect or authenticate to WattSeek",
+      "no_plants": "No WattSeek plants were found"
     },
     "abort": {
-      "already_configured": "This WattSeek inverter is already configured"
+      "already_configured": "This WattSeek inverter is already configured",
+      "cannot_connect": "Unable to continue connecting to WattSeek",
+      "no_inverters": "No inverter devices were found in the selected plant"
     }
   },
   "options": {
