@@ -52,9 +52,16 @@ The integration creates sensors for:
 ## Exposed controls
 
 The integration discovers the inverter's WattSeek command protocol dynamically.
-- SELECT commands become Home Assistant select entities.
-- Two-state OFF/ON or Disable/Enable commands become switches.
-- INPUT commands become number entities with ranges derived from WattSeek protocol metadata.
+- SELECT commands become staged Home Assistant select entities.
+- Two-state OFF/ON or Disable/Enable commands become staged switches.
+- INPUT commands become staged number entities with ranges derived from WattSeek protocol metadata.
+- Every discovered WattSeek settings group receives a Submit button and a pending-changes binary sensor.
+
+Changing a setting in Home Assistant only stages it. Press that group's Submit
+button to send the complete section atomically. After WRITE succeeds, the
+integration automatically issues WattSeek's matching group READ, waits for the
+inverter response, reloads command values and protocol metadata, and only then
+clears the submitted draft values.
 
 Commands considered risky, such as factory reset / inverter remote-control style commands, are disabled by default in the entity registry when applicable.
 
@@ -63,9 +70,9 @@ Commands considered risky, such as factory reset / inverter remote-control style
 This is an unofficial custom integration and not affiliated with WattSeek.
 WattSeek is a cloud service, so upstream API changes can break the integration.
 
-After a control command succeeds, the integration reads the command value back
-from WattSeek before refreshing Home Assistant. This avoids displaying the old
-value while the cloud is still processing the write.
+Plant and inverter choices are discovered from the account. Datalogger/STICK
+devices are not offered as controllable inverters, and each inverter is stored
+as its own Home Assistant config entry.
 
 Battery power is normalized for Home Assistant energy-flow cards: positive
 means charging and negative means discharging.

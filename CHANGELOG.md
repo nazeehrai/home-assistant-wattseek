@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Discover plants and allow explicit selection of each inverter while excluding dataloggers.
+- Build setting groups, labels, controls, options, units, precision, ranges, and linkages dynamically from WattSeek protocol JSON.
+- Stage setting edits locally and expose one Submit button plus pending-change sensor per discovered group.
+- Submit complete groups atomically, then issue WattSeek's inverter-facing group READ and refresh values and protocol metadata.
+- Migrate existing entries to explicit plant and inverter identifiers without changing entity unique IDs.
+
 ## 0.2.0
 
 - Confirm writable command values through a bounded cloud readback before refreshing entities.

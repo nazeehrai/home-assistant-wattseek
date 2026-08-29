@@ -119,28 +119,69 @@ class WattSeekApi:
 
         return data.get("data", data)
 
-    async def discover(self) -> None:
+    async def get_plants(self) -> list[dict[str, Any]]:
         plants = await self.request(
             "GET", "/plant/page", params={"current": 1, "pageSize": 50}
         )
-        plant_list = (plants or {}).get("data", [])
-        if not plant_list:
-            raise WattSeekApiError("No WattSeek plants found")
-        self.plant = plant_list[0]
+        return (plants or {}).get("data", [])
 
+    async def get_devices(self, plant_id: str) -> list[dict[str, Any]]:
         devices = await self.request(
             "GET",
             "/device/page",
             params={
                 "current": 1,
                 "pageSize": 50,
-                "plantId": self.plant["plantId"],
+                "plantId": plant_id,
             },
         )
-        device_list = (devices or {}).get("data", [])
-        inverter = next((d for d in device_list if d.get("deviceType") == "INVERTER"), None)
+        return (devices or {}).get("data", [])
+
+    async def discover(
+        self,
+        plant_id: str | None = None,
+        device_id: str | None = None,
+    ) -> None:
+        plant_list = await self.get_plants()
+        if not plant_list:
+            raise WattSeekApiError("No WattSeek plants found")
+
+        candidate_plants = plant_list
+        if plant_id is not None:
+            candidate_plants = [
+                plant for plant in plant_list if str(plant.get("plantId")) == str(plant_id)
+            ]
+            if not candidate_plants:
+                raise WattSeekApiError("The configured WattSeek plant was not found")
+
+        inverter = None
+        selected_plant = None
+        for plant in candidate_plants:
+            device_list = await self.get_devices(str(plant["plantId"]))
+            inverters = [
+                device for device in device_list if device.get("deviceType") == "INVERTER"
+            ]
+            if device_id is not None:
+                inverter = next(
+                    (
+                        device
+                        for device in inverters
+                        if str(device.get("deviceId")) == str(device_id)
+                    ),
+                    None,
+                )
+            elif inverters:
+                inverter = inverters[0]
+            if inverter is not None:
+                selected_plant = plant
+                break
+
         if not inverter:
+            if device_id is not None:
+                raise WattSeekApiError("The configured WattSeek inverter was not found")
             raise WattSeekApiError("No inverter found in WattSeek account")
+
+        self.plant = selected_plant
         self.device = inverter
 
     @property
@@ -165,14 +206,22 @@ class WattSeekApi:
     async def get_command_values(self) -> list[dict[str, Any]]:
         return await self.request("GET", f"/device/cmd/value/{self.device_id}")
 
-    async def send_command(self, group_id: str, cmd_id: str, value: Any) -> None:
-        # Matches the WattSeek web UI's GROUP/WRITE request body.
+    async def send_group_command(
+        self,
+        group_id: str,
+        function_type: str,
+        cmd_list: list[dict[str, Any]],
+    ) -> None:
+        """Submit a complete WattSeek settings group."""
+        if function_type not in {"WRITE", "READ"}:
+            raise ValueError(f"Unsupported WattSeek function type: {function_type}")
+
         payload = {
             "cmdGroupId": str(group_id),
             "operationType": "GROUP",
-            "functionType": "WRITE",
+            "functionType": function_type,
             "deviceId": self.device_id,
-            "cmdList": [{"cmdId": str(cmd_id), "cmdValue": value}],
+            "cmdList": cmd_list,
         }
         result = await self.request("POST", "/device/command/send", json_data=payload)
 

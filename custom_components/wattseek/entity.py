@@ -5,6 +5,7 @@ from typing import Any
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import EntityCategory
 
 from .const import DOMAIN
 from .coordinator import WattSeekCoordinator
@@ -37,16 +38,31 @@ class WattSeekEntity(CoordinatorEntity[WattSeekCoordinator]):
 
 
 class WattSeekCommandEntity(WattSeekEntity):
+    _attr_entity_category = EntityCategory.CONFIG
+
     def __init__(self, coordinator: WattSeekCoordinator, command: dict[str, Any]) -> None:
         self.command = command
         self.cmd_id = str(command["cmdId"])
         self.group_id = str(command["groupId"])
         super().__init__(coordinator, f"cmd_{self.cmd_id}")
-        self._attr_name = command.get("cmdName") or self.cmd_id
+        self._attr_name = (
+            f"{coordinator.group_name(self.group_id)} — "
+            f"{command.get('cmdName') or self.cmd_id}"
+        )
 
     @property
     def raw_value(self) -> Any:
-        return (self.coordinator.data or {}).get("command_values", {}).get(self.cmd_id)
+        return self.coordinator.effective_value(self.group_id, self.cmd_id)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        pending = self.coordinator.pending_values.get(self.group_id, {})
+        return {
+            "wattseek_group": self.coordinator.group_name(self.group_id),
+            "confirmed_value": self.coordinator.confirmed_value(self.cmd_id),
+            "pending_value": pending.get(self.cmd_id),
+            "pending_change": self.cmd_id in pending,
+        }
 
     async def async_write(self, value: Any) -> None:
-        await self.coordinator.async_write_command(self.group_id, self.cmd_id, value)
+        self.coordinator.stage_value(self.group_id, self.cmd_id, value)

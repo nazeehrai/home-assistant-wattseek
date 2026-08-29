@@ -37,7 +37,7 @@ class WattSeekSelect(WattSeekCommandEntity, SelectEntity):
         self._text_to_value = {str(x.get("text")): str(x.get("value")) for x in self._choices}
         self._value_to_text = {str(x.get("value")): str(x.get("text")) for x in self._choices}
         self._attr_options = list(self._text_to_value)
-        if self._attr_name in DANGEROUS_COMMAND_NAMES:
+        if command.get("cmdName") in DANGEROUS_COMMAND_NAMES:
             self._attr_entity_registry_enabled_default = False
 
     @property
