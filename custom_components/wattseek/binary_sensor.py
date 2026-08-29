@@ -53,7 +53,7 @@ class WattSeekGridConnectedSensor(WattSeekEntity, BinarySensorEntity):
 
 class WattSeekGroupPendingSensor(WattSeekEntity, BinarySensorEntity):
     _attr_icon = "mdi:content-save-alert"
-    _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator, group):
         self.group_id = str(group["groupId"])
