@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.bak*
+*.cookie*
+*.db
+*.env
+*.log
+.DS_Store
+.storage/
+.vscode/
+secrets.yaml

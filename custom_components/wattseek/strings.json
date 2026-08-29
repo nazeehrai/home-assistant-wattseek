@@ -1,0 +1,32 @@
+{
+  "title": "WattSeek",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to WattSeek",
+        "description": "Enter the same credentials used by the WattSeek app/web portal.",
+        "data": {
+          "username": "Username / email",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect or authenticate to WattSeek"
+    },
+    "abort": {
+      "already_configured": "This WattSeek inverter is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "WattSeek options",
+        "description": "Set how often Home Assistant polls WattSeek. The cloud may update less frequently than this.",
+        "data": {
+          "update_interval": "Update interval (seconds)"
+        }
+      }
+    }
+  }
+}
